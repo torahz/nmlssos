@@ -1,8 +1,11 @@
 import os
 import socket
+from geopy.geocoders import Nominatim
+from social_analyzer import SocialAnalyzer
 import whois
-import requests
-from bs4 import BeautifulSoup
+from search_names import SearchNames
+import phonenumbers
+from osint import Osint
 
 class NMLSS_OSINT:
     def __init__(self):
@@ -23,53 +26,41 @@ class NMLSS_OSINT:
         self.clear_screen()
         print("NMLSS OSINT")
         print("-----------")
-        print("1. IP")
+        print("1. IP Trace")
         print("2. Social Media")
-        print("3. Domain")
-        print("4. Name")
-        print("5. Phone")
-        print("6. Email")
+        print("3. Domain Info")
+        print("4. Name Search")
+        print("5. Phone Info")
+        print("6. Email Search")
         print("0. Exit Program")
 
     def ip_trace(self):
         self.clear_screen()
         ip = input("Enter IP: ")
         try:
-            socket.inet_aton(ip)
+            geolocator = Nominatim(user_agent="my_app")
+            location = geolocator.geocode(ip)
             print("IP Trace:")
             print("---------")
-            print("IP:", ip)
-            print("Hostname:", socket.gethostbyaddr(ip)[0])
-            response = requests.get(f"https://ipapi.co/{ip}/json/")
-            data = response.json()
-            print("Country:", data.get('country_name', 'Unknown'))
-            print("City:", data.get('city', 'Unknown'))
-        except socket.error:
-            print("Invalid IP")
+            print(f"IP: {ip}")
+            print(f"Location: {location.address if location else 'Not found'}")
         except Exception as e:
             print(f"An error occurred: {e}")
         input("Press Enter to continue...")
-        self.clear_screen()
 
     def social_media(self):
         self.clear_screen()
         name = input("Enter name: ")
-        print("Social Media:")
-        print("------------")
-        platforms = {
-            "Facebook": f"https://www.facebook.com/{name}",
-            "Twitter": f"https://twitter.com/{name}",
-            "Instagram": f"https://www.instagram.com/{name}",
-            "LinkedIn": f"https://www.linkedin.com/in/{name}"
-        }
-        for platform, url in platforms.items():
-            response = requests.get(url)
-            if response.status_code == 200:
-                print(f"{platform}: {url} (Profile exists)")
-            else:
-                print(f"{platform}: Profile not found")
+        try:
+            social_analyzer = SocialAnalyzer()
+            social_media = social_analyzer.get_social_media(name)
+            print("Social Media:")
+            print("------------")
+            for platform, url in social_media.items():
+                print(f"{platform}: {url}")
+        except Exception as e:
+            print(f"An error occurred: {e}")
         input("Press Enter to continue...")
-        self.clear_screen()
 
     def domain_info(self):
         self.clear_screen()
@@ -78,51 +69,60 @@ class NMLSS_OSINT:
             whois_data = whois.whois(domain)
             print("Domain Info:")
             print("------------")
-            print("Domain:", domain)
-            print("Registrar:", whois_data.registrar)
-            print("Created:", whois_data.creation_date)
-            print("Updated:", whois_data.updated_date)
-        except whois.exceptions.UnknownTld:
-            print("Unknown domain")
+            print(f"Domain: {domain}")
+            print(f"Registrar: {whois_data.registrar}")
+            print(f"Created: {whois_data.creation_date}")
+            print(f"Updated: {whois_data.updated_date}")
         except Exception as e:
             print(f"An error occurred: {e}")
         input("Press Enter to continue...")
-        self.clear_screen()
 
     def name_search(self):
         self.clear_screen()
         name = input("Enter name: ")
-        print("Name Search:")
-        print("------------")
-        print("Google Dork:", f"site:google.com {name}")
-        print("GHDB:", f"{name} GHDB")
+        try:
+            search_names = SearchNames()
+            results = search_names.search(name)
+            print("Name Search:")
+            print("------------")
+            for result in results:
+                print(result)
+        except Exception as e:
+            print(f"An error occurred: {e}")
         input("Press Enter to continue...")
-        self.clear_screen()
 
     def phone_info(self):
         self.clear_screen()
-        phone = input("Enter phone number: ")
-        print("Phone Info:")
-        print("------------")
-        print("Phone Number:", phone)
-        # Implement phone number lookup logic here
+        phone = input("Enter phone number (with country code): ")
+        try:
+            phone_number = phonenumbers.parse(phone)
+            print("Phone Info:")
+            print("------------")
+            print(f"Number: {phonenumbers.format_number(phone_number, phonenumbers.PhoneNumberFormat.INTERNATIONAL)}")
+            print(f"Is valid: {phonenumbers.is_valid_number(phone_number)}")
+            print(f"Region: {phonenumbers.region_code_for_number(phone_number)}")
+        except Exception as e:
+            print(f"An error occurred: {e}")
         input("Press Enter to continue...")
-        self.clear_screen()
 
     def email_search(self):
         self.clear_screen()
         email = input("Enter email: ")
-        print("Email Search:")
-        print("------------")
-        print("Email:", email)
-        # Implement email lookup logic here
+        try:
+            osint = Osint()
+            results = osint.search(email)
+            print("Email Search:")
+            print("------------")
+            for result in results:
+                print(result)
+        except Exception as e:
+            print(f"An error occurred: {e}")
         input("Press Enter to continue...")
-        self.clear_screen()
 
     def exit_program(self):
         self.clear_screen()
         print("Exiting program")
-        os._exit(0)
+        exit()
 
     def main_menu(self):
         while True:
@@ -133,7 +133,6 @@ class NMLSS_OSINT:
             else:
                 print("Invalid choice")
                 input("Press Enter to continue...")
-                self.clear_screen()
 
 if __name__ == "__main__":
     print("WARNING: This tool is for educational purposes only. Use responsibly and ethically.")
