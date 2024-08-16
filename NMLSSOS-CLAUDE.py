@@ -32,6 +32,7 @@ class NMLSS_OSINT:
         print("0. Exit Program")
 
     def ip_trace(self):
+        self.clear_screen()
         ip = input("Enter IP: ")
         try:
             socket.inet_aton(ip)
@@ -39,7 +40,6 @@ class NMLSS_OSINT:
             print("---------")
             print("IP:", ip)
             print("Hostname:", socket.gethostbyaddr(ip)[0])
-            # Use an IP geolocation API for more accurate information
             response = requests.get(f"https://ipapi.co/{ip}/json/")
             data = response.json()
             print("Country:", data.get('country_name', 'Unknown'))
@@ -49,8 +49,10 @@ class NMLSS_OSINT:
         except Exception as e:
             print(f"An error occurred: {e}")
         input("Press Enter to continue...")
+        self.clear_screen()
 
     def social_media(self):
+        self.clear_screen()
         name = input("Enter name: ")
         print("Social Media:")
         print("------------")
@@ -67,8 +69,60 @@ class NMLSS_OSINT:
             else:
                 print(f"{platform}: Profile not found")
         input("Press Enter to continue...")
+        self.clear_screen()
 
-    # ... (other methods remain the same)
+    def domain_info(self):
+        self.clear_screen()
+        domain = input("Enter domain: ")
+        try:
+            whois_data = whois.whois(domain)
+            print("Domain Info:")
+            print("------------")
+            print("Domain:", domain)
+            print("Registrar:", whois_data.registrar)
+            print("Created:", whois_data.creation_date)
+            print("Updated:", whois_data.updated_date)
+        except whois.exceptions.UnknownTld:
+            print("Unknown domain")
+        except Exception as e:
+            print(f"An error occurred: {e}")
+        input("Press Enter to continue...")
+        self.clear_screen()
+
+    def name_search(self):
+        self.clear_screen()
+        name = input("Enter name: ")
+        print("Name Search:")
+        print("------------")
+        print("Google Dork:", f"site:google.com {name}")
+        print("GHDB:", f"{name} GHDB")
+        input("Press Enter to continue...")
+        self.clear_screen()
+
+    def phone_info(self):
+        self.clear_screen()
+        phone = input("Enter phone number: ")
+        print("Phone Info:")
+        print("------------")
+        print("Phone Number:", phone)
+        # Implement phone number lookup logic here
+        input("Press Enter to continue...")
+        self.clear_screen()
+
+    def email_search(self):
+        self.clear_screen()
+        email = input("Enter email: ")
+        print("Email Search:")
+        print("------------")
+        print("Email:", email)
+        # Implement email lookup logic here
+        input("Press Enter to continue...")
+        self.clear_screen()
+
+    def exit_program(self):
+        self.clear_screen()
+        print("Exiting program")
+        os._exit(0)
 
     def main_menu(self):
         while True:
@@ -79,6 +133,7 @@ class NMLSS_OSINT:
             else:
                 print("Invalid choice")
                 input("Press Enter to continue...")
+                self.clear_screen()
 
 if __name__ == "__main__":
     print("WARNING: This tool is for educational purposes only. Use responsibly and ethically.")
